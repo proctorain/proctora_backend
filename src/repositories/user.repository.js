@@ -27,6 +27,13 @@ export const createUser = async (email, hashedPassword) => {
   });
 };
 
+export const saveVerificationToken = async (email, token) => {
+  return prisma.userss.update({
+    where: { email },
+    data: { verificationToken: token },
+  });
+};
+
 export const verifyUserEmail = async (email) => {
   return prisma.userss.update({
     where: { email },

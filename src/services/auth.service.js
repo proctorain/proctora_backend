@@ -14,6 +14,7 @@ import {
   findUserByEmail,
   findUserById,
   createUser,
+  saveVerificationToken,
   verifyUserEmail,
   saveResetToken,
   findUserByResetToken,
@@ -48,6 +49,9 @@ const register = async (email, password) => {
 
   const verificationToken = generateVerificationToken(user.email);
   // A JWT signed with JWT_VERIFY_SECRET, expires 24h
+
+  await saveVerificationToken(user.email, verificationToken);
+  // Persist the token so we can invalidate it later (e.g. on resend)
 
   const verificationLink = `${APP_URL}/api/auth/verify-email?token=${verificationToken}`;
 
@@ -154,6 +158,14 @@ const verifyEmail = async (token) => {
 
   if (user.verified) {
     return { alreadyVerified: true }; // Not an error, just inform the user
+  }
+
+  // Reject stale tokens — only the most recently issued link is valid.
+  // e.g. if user requests a resend, the old link is invalidated.
+  if (user.verificationToken !== token) {
+    const err = new Error("Verification link is invalid or has expired");
+    err.statusCode = HTTP_STATUS.BAD_REQUEST;
+    throw err;
   }
 
   await verifyUserEmail(decoded.email);
