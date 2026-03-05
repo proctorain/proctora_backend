@@ -10,7 +10,20 @@ export const registerDTO = z.object({
     .string()
     .min(8, { message: "Password must be at least 8 characters" })
     .max(100, { message: "Password too long" }),
-    // .max(100) prevents someone sending a 10MB string to crash bcrypt
+  // .max(100) prevents someone sending a 10MB string to crash bcrypt
+
+  confirmPassword: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(100, { message: "Password too long" }),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+  }
 });
 
 // Used on POST /login
