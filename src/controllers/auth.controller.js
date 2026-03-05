@@ -112,7 +112,15 @@ export const forgotPassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const { token, password } = req.body;
+    const { token } = req.query;
+    const { password } = req.body;
+
+    if (!token) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ status: "error", message: "Token missing from URL" });
+    }
+
     await authService.resetPassword(token, password);
 
     res.status(HTTP_STATUS.OK).json({

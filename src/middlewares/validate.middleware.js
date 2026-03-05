@@ -19,12 +19,10 @@ export const validate = (schema) => (req, res, next) => {
   //      or { success: false, error: ZodError }
 
   if (!result.success) {
-    const errors = result.error.errors.map((err) => ({
+    const errors = result.error?.errors?.map((err) => ({
       field: err.path.join("."),
-      // err.path is an array: ["password"] or ["user", "email"]
-      // .join(".") turns it into: "password" or "user.email"
       message: err.message,
-    }));
+    })) ?? [];
 
     return res.status(HTTP_STATUS.BAD_REQUEST).json({
       status: "error",

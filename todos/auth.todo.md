@@ -5,4 +5,4 @@ route it to the frontend
 
 2. make confirm password backend
 
-3. make forgotpassword frontend and backend
+3. make forgotpassword and resetpassword frontend
