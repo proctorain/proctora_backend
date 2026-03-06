@@ -11,6 +11,7 @@
 // Resolvers then do: if (!context.user) throw new Error("Unauthorized")
 
 import axios from "axios";
+import { AUTH_SERVICE_URL } from '../config/env.js';
 
 const buildContext = async ({ req }) => {
   const authHeader = req.headers.authorization;
@@ -28,7 +29,7 @@ const buildContext = async ({ req }) => {
     // Call auth-service to validate token and get user
     // This is inter-service communication — same pattern as form-service
     const response = await axios.get(
-      `${process.env.AUTH_SERVICE_URL}/api/auth/me`,
+      `${AUTH_SERVICE_URL}/api/auth/me`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
 

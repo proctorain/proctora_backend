@@ -1,5 +1,3 @@
-// src/routes/graphql.proxy.js
-//
 // GraphQL is different from REST in one key way:
 // ALL GraphQL operations (queries + mutations) go to ONE endpoint: /graphql
 // So we proxy everything hitting /graphql on the gateway

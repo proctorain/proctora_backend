@@ -68,8 +68,8 @@ app.get("/health", (req, res) => {
     gateway: "running",
     timestamp: new Date().toISOString(),
     services: {
-      auth: process.env.AUTH_SERVICE_URL,
-      graphql: process.env.QUIZ_SERVICE_URL,
+      auth: AUTH_SERVICE_URL,
+      graphql: QUIZ_SERVICE_URL,
     },
   });
 });

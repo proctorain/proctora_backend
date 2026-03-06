@@ -1,5 +1,3 @@
-// src/routes/auth.proxy.js
-//
 // WHAT IS A PROXY?
 // Instead of the frontend calling auth-service directly,
 // every request goes through the gateway.
@@ -27,7 +25,7 @@ const authProxy = createProxyMiddleware({
     // Log every proxied request so you can debug easily
     proxyReq: (proxyReq, req) => {
       console.log(
-        `[Auth Proxy] ${req.method} ${req.path} → ${process.env.AUTH_SERVICE_URL}${req.path}`,
+        `[Auth Proxy] ${req.method} ${req.path} → ${AUTH_SERVICE_URL}${req.path}`,
       );
     },
 
