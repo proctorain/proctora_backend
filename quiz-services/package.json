@@ -1,0 +1,30 @@
+{
+  "name": "quiz-services",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon main"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^5.4.0",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
+    "graphql": "^16.13.1",
+    "graphql-tag": "^2.12.6",
+    "lodash.merge": "^4.6.2",
+    "nodemailer": "^8.0.1",
+    "prisma": "^5.22.0",
+    "redis": "^5.11.0"
+  },
+  "devDependencies": {
+    "@types/lodash.merge": "^4.6.9",
+    "nodemon": "^3.1.14"
+  }
+}

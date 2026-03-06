@@ -19,7 +19,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-
+import { createProxyMiddleware } from "http-proxy-middleware";
 import authProxy from "./routes/auth.proxy.js";
 import graphqlProxy from "./routes/graphql.proxy.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
@@ -68,8 +68,8 @@ app.get("/health", (req, res) => {
     gateway: "running",
     timestamp: new Date().toISOString(),
     services: {
-      auth: process.env.AUTH_SERVICE_URL,
-      graphql: process.env.QUIZ_SERVICE_URL,
+      auth: AUTH_SERVICE_URL,
+      graphql: QUIZ_SERVICE_URL,
     },
   });
 });
@@ -79,7 +79,7 @@ app.get("/health", (req, res) => {
 
 // All auth REST calls → auth-service
 // e.g. POST /api/auth/login, GET /api/auth/me, POST /api/auth/logout
-app.use("/", authProxy);
+app.use("/api/auth", authProxy);
 
 // All GraphQL calls → quiz-service
 // e.g. POST /graphql (mutations + queries)
