@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Quiz{
+    id String @id @default(uuid())
+    title String
+    description String?
+    timeLimit Int
+    startTime DateTime
+    endTime DateTime
+    teacherId String
+    teacherEmail String
+    published Boolean @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    questions Question[]
+    submissions Submission[]
+}
+
+model Question{
+    id String @id @default(uuid())
+    quizId String
+    test String
+    order Int
+    createdAt DateTime @default(now())
+    quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+    options   Option[]
+    answers   Answer[]
+}
+model Option {
+  id         String   @id @default(uuid())
+  questionId String
+  text       String                          // the option text
+  isCorrect  Boolean  @default(false)        // can have multiple correct options
+  order      Int                             // position (A, B, C, D...)
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+}
+
+model Submission {
+  id            String   @id @default(uuid())
+  quizId        String
+  studentId     String                       // from auth-service
+  studentEmail  String
+  studentName   String
+  score         Int                          // calculated on submit
+  totalPoints   Int                          // max possible score
+  startedAt     DateTime                     // when student opened the quiz
+  submittedAt   DateTime @default(now())
+  timeTaken     Int                          // seconds from start to submit
+  emailSentAt   DateTime?                    // when result email was sent to student
+
+  quiz          Quiz     @relation(fields: [quizId], references: [id])
+  answers       Answer[]
+}
+
+model Answer {
+  id           String   @id @default(uuid())
+  submissionId String
+  questionId   String
+  optionId     String                        // which option they picked
+  timeTaken    Int                           // seconds spent on this question
+  isCorrect    Boolean                       // calculated on submit
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question     Question   @relation(fields: [questionId], references: [id])
+  option       Option     @relation(fields: [optionId], references: [id])
+}
