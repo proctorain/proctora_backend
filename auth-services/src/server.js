@@ -1,6 +1,3 @@
-// src/server.js — THE ENTRY POINT
-
-// This line MUST be first — loads .env before anything else reads process.env
 import { PORT, FRONTEND_URL } from "./config/env.js";
 import HTTP_STATUS from './utils/http.js';
 
