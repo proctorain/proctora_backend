@@ -23,6 +23,6 @@ export const {
   JWT_VERIFY_SECRET,
 
   // Email
-  EMAIL_USER,
-  EMAIL_PASS,
+  MAIL_SERVICE_SECRET,
+  MAIL_SERVICE_URL
 } = process.env;

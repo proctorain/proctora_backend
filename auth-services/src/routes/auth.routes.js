@@ -66,7 +66,6 @@ router.post("/refresh", validate(refreshTokenDTO), refresh);
 
 router.get(
   "/verify-email",
-  // No body validation — token is in query string, handled in controller
   verifyEmail,
 );
 

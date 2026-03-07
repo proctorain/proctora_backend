@@ -9,6 +9,7 @@
 
 import authService from "../services/auth.service.js";
 import HTTP_STATUS from '../utils/http.js';
+import { FRONTEND_URL } from "../config/env.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -73,8 +74,6 @@ export const logout = async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.query;
-    // token comes from the URL: /verify-email?token=abc123
-    // req.query contains URL query parameters
 
     if (!token) {
       return res
@@ -84,11 +83,17 @@ export const verifyEmail = async (req, res, next) => {
 
     const result = await authService.verifyEmail(token);
 
-    const message = result.alreadyVerified
-      ? "Email already verified. You can log in."
-      : "Email verified! You can now log in.";
+    // DEPRICATED
+    // const message = result.alreadyVerified
+    //   ? "Email already verified. You can log in."
+    //   : "Email verified! You can now log in.";
 
-    res.status(HTTP_STATUS.OK).json({ status: "success", message });
+
+    if (!result.alreadyVerified) {
+      return res.redirect(`${FRONTEND_URL}/email/verification/verified`);
+    }
+
+    return res.redirect(`${FRONTEND_URL}/email/verification/already-verified`);
   } catch (err) {
     next(err);
   }
