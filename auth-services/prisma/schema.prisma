@@ -1,36 +1,44 @@
 generator client {
   provider = "prisma-client-js"
-  // This tells Prisma: generate a JavaScript client I can use in my code
 }
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
+}
+
+enum AuthMethod {
+  email
+  google
 }
 
 model Userss {
-  id                String    @id @default(uuid())
-  // String primary key, auto-generates a UUID like "a1b2c3d4-..."
+  id               String      @id @default(uuid())
+  email            String      @unique
+  password         String?     // nullable — Google users have no password
+  verified         Boolean     @default(false)
+  authMethod       AuthMethod  @default(email)
 
-  email             String    @unique
-  // @unique = PostgreSQL creates an index, duplicate emails throw an error
+  // OTP fields
+  otp              String?     // hashed 4-digit OTP stored in DB
+  otpExpiry        DateTime?   // 10 minutes from generation
+  otpAttempts      Int         @default(0) // wrong attempt counter
+  otpCooldownUntil DateTime?   // 20 min cooldown after 10 wrong attempts
+  otpLastSentAt    DateTime?   // enforces 35s resend timer
 
-  password          String
-  // We store the bcrypt HASH here, never the real password
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  verified          Boolean   @default(false)
-  // Starts as false. Set to true when user clicks the email link.
+  profile          Profile?    // one-to-one relation
+}
 
-  verificationToken String?
-  // The ? means nullable. We store the JWT token we emailed them.
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  resetToken        String?
-  // Nullable. Stores SHA256 hash of the password reset token.
-
-  resetTokenExpiry  DateTime?
-  // Nullable. When the reset token expires (1 hour from creation).
-
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  // @updatedAt = Prisma auto-updates this field on every save
+  user      Userss   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -4,10 +4,14 @@ import { passwordResetTemplate } from "../templates/passwordReset.js";
 import { teacherResultTemplate } from "../templates/teacherResult.js";
 import { studentResultTemplate } from "../templates/studentResult.js";
 import { EMAIL_USER } from "../config/env.js";
+import { otpVerificationTemplate } from "../templates/otpVerification.js";
+import { otpPasswordResetTemplate } from "../templates/otpPasswordReset.js";
 
 const TEMPLATES = {
-  verification: verificationTemplate,
-  "password-reset": passwordResetTemplate,
+  verification: verificationTemplate, // old — keep for now
+  "password-reset": passwordResetTemplate, // old — keep for now
+  "otp-verification": otpVerificationTemplate, // new
+  "otp-password-reset": otpPasswordResetTemplate, // new
   "teacher-result": teacherResultTemplate,
   "student-result": studentResultTemplate,
 };
