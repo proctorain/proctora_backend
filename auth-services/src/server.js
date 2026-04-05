@@ -9,7 +9,6 @@ import passport from "passport";
 import { configurePassport } from "./config/passport.js"
 import authRoutes from "./routes/auth.routes.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
-import requestLogger from "./middlewares/request.logger.js";
 import logger from "./config/logger.js";
 import "./config/redis.js";
 import { FRONTEND_URL, SESSION_SECRET, NODE_ENV, PORT } from "./config/env.js";
@@ -26,7 +25,6 @@ app.use(
   }),
 );
 app.use(express.json());
-app.use(requestLogger);
 
 // Session required by passport even though we use JWT
 // Passport needs it internally for the OAuth flow
@@ -53,8 +51,5 @@ app.use("/api/auth", authRoutes);
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
-  logger.info({
-    message: "Auth service running",
-    port: PORT,
-  });
+  logger.info({ port: PORT }, "Auth service running");
 });

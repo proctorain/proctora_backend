@@ -7,14 +7,17 @@ const requestLogger = (req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
 
-    logger.info({
-      method: req.method,
-      url: req.originalUrl,
-      status: res.statusCode,
-      ip: req.ip,
-      userAgent: req.get("User-Agent"),
-      duration: `${duration}ms`,
-    });
+    logger.info(
+      {
+        method: req.method,
+        url: req.originalUrl,
+        status: res.statusCode,
+        ip: req.ip,
+        userAgent: req.get("User-Agent"),
+        duration: `${duration}ms`,
+      },
+      "Request completed",
+    );
   });
 
   next();

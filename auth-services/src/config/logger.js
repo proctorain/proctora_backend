@@ -1,38 +1,37 @@
-import winston from "winston";
-import { NODE_ENV } from "./env.js";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import pino from "pino";
 
-const isDev = NODE_ENV !== "production";
+const level = "error";
 
-// Custom log format
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.errors({ stack: true }),
-  winston.format.splat(),
-  isDev ? winston.format.colorize() : winston.format.uncolorize(),
-  winston.format.printf(({ level, message, timestamp, ...meta }) => {
-    return `${timestamp} [${level}]: ${message} ${
-      Object.keys(meta).length ? JSON.stringify(meta) : ""
-    }`;
-  }),
+const logDir = fileURLToPath(new URL("../../logs/", import.meta.url));
+fs.mkdirSync(logDir, { recursive: true });
+
+const streams = [
+  { level, stream: process.stderr },
+  {
+    level: "error",
+    stream: pino.destination({
+      dest: path.join(logDir, "error.log"),
+      sync: false,
+    }),
+  },
+];
+
+const logger = pino(
+  {
+    level,
+    base: null,
+    timestamp: pino.stdTimeFunctions.isoTime,
+    formatters: {
+      level: (label) => ({ level: label }),
+    },
+    serializers: {
+      err: pino.stdSerializers.err,
+    },
+  },
+  pino.multistream(streams),
 );
-
-const logger = winston.createLogger({
-  level: isDev ? "debug" : "info",
-  format: logFormat,
-  transports: [
-    new winston.transports.Console(),
-
-    // Save only errors to file
-    new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
-    }),
-
-    // Save all logs
-    new winston.transports.File({
-      filename: "logs/combined.log",
-    }),
-  ],
-});
 
 export default logger;
