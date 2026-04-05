@@ -28,6 +28,8 @@ import {
   PORT,
   AUTH_SERVICE_URL,
   QUIZ_SERVICE_URL,
+  PROFILE_SERVICE_URL,
+  EMAIL_SERVICE_URL,
 } from "./config/env.js";
 
 const app = express();
@@ -73,6 +75,34 @@ app.get("/health", (req, res) => {
     },
   });
 });
+// Profile proxy 
+app.use(
+  "/api/profile",
+  createProxyMiddleware({
+    // Express strips the mount prefix (/api/profile) before this middleware runs.
+    // Point target to /api/profile so /onboarding becomes /api/profile/onboarding upstream.
+    target: `${PROFILE_SERVICE_URL}/api/profile`,
+    changeOrigin: true,
+
+    // IMPORTANT — must be true for multipart/form-data (file uploads)
+    // Without this the Content-Type boundary header gets corrupted
+    // and multer can't parse the file on the other side
+    on: {
+      proxyReq: (proxyReq, req) => {
+        console.log(
+          `[Profile Proxy] ${req.method} ${req.path} → ${PROFILE_SERVICE_URL}/api/profile${req.path}`,
+        );
+      },
+      error: (err, req, res) => {
+        console.error("[Profile Proxy Error]", err.message);
+        res.status(502).json({
+          status:  "error",
+          message: "Profile service unavailable",
+        });
+      },
+    },
+  })
+);
 
 // ── Routes ────────────────────────────────────────────────────────────────
 // ORDER MATTERS in Express — routes are matched top to bottom.
@@ -101,5 +131,7 @@ app.listen(PORT, () => {
   console.log(`API Gateway running on http://localhost:${PORT}`);
   console.log(`Auth service  → ${AUTH_SERVICE_URL}`);
   console.log(`Quiz service  → ${QUIZ_SERVICE_URL}`);
+  console.log(`Email service  → ${EMAIL_SERVICE_URL}`);
+  console.log(`Profile service  → ${PROFILE_SERVICE_URL}`);
   console.log(`Health check  → http://localhost:${PORT}/health`);
 });
