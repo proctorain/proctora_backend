@@ -127,6 +127,7 @@ export const googleAuthCallback = async (req, res) => {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       isNewUser: result.isNewUser.toString(),
+      requiresOnboarding: result.requiresOnboarding.toString(),
     });
 
     res.redirect(`${FRONTEND_URL}/auth/callback?${params}`);

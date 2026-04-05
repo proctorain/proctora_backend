@@ -37,6 +37,21 @@ const issueTokens = async (userId) => {
   return { accessToken, refreshToken };
 };
 
+const isProfileComplete = (user) =>
+  typeof user?.profile?.name === "string" && user.profile.name.trim().length > 0;
+
+const buildAuthResponse = ({ user, tokens, isNewUser }) => {
+  const profileCompleted = isProfileComplete(user);
+
+  return {
+    ...tokens,
+    isNewUser,
+    profileCompleted,
+    requiresOnboarding: !profileCompleted,
+    user: { id: user.id, email: user.email },
+  };
+};
+
 // ── Helper — send OTP email ───────────────────────────────────────────────────
 const sendOtpEmail = async (email, otp, type = "verification") => {
   await mailClient.post("/send", {
@@ -107,11 +122,11 @@ export const verifyEmailOtp = async (email, otp) => {
 
   logger.info({ userId: user.id }, "Email verified, user auto-logged in");
 
-  return {
-    ...tokens,
-    isNewUser: true, // always new on register verify → go to onboarding
-    user: { id: user.id, email: user.email },
-  };
+  return buildAuthResponse({
+    user,
+    tokens,
+    isNewUser: true,
+  });
 };
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
@@ -151,11 +166,11 @@ export const login = async (email, password) => {
   const tokens = await issueTokens(user.id);
   logger.info({ userId: user.id }, "User logged in");
 
-  return {
-    ...tokens,
-    isNewUser: false, // existing user → dashboard
-    user: { id: user.id, email: user.email },
-  };
+  return buildAuthResponse({
+    user,
+    tokens,
+    isNewUser: false,
+  });
 };
 
 // ── RESEND OTP ────────────────────────────────────────────────────────────────
@@ -329,11 +344,11 @@ export const resetPassword = async (token, newPassword) => {
   const tokens = await issueTokens(user.id);
   logger.info({ userId: user.id }, "Password reset successful");
 
-  return {
-    ...tokens,
+  return buildAuthResponse({
+    user,
+    tokens,
     isNewUser: false,
-    user: { id: user.id, email: user.email },
-  };
+  });
 };
 
 // ── GOOGLE OAUTH ──────────────────────────────────────────────────────────────
@@ -354,11 +369,11 @@ export const handleGoogleAuth = async ({ email, name, avatarUrl }) => {
     const tokens = await issueTokens(existing.id);
     logger.info({ userId: existing.id }, "Google user logged in");
 
-    return {
-      ...tokens,
-      isNewUser: false, // existing → dashboard
-      user: { id: existing.id, email: existing.email },
-    };
+    return buildAuthResponse({
+      user: existing,
+      tokens,
+      isNewUser: false,
+    });
   }
 
   // New Google user — create account
@@ -366,11 +381,11 @@ export const handleGoogleAuth = async ({ email, name, avatarUrl }) => {
   const tokens = await issueTokens(user.id);
   logger.info({ userId: user.id, email }, "New Google user registered");
 
-  return {
-    ...tokens,
-    isNewUser: true, // new → onboarding
-    user: { id: user.id, email: user.email },
-  };
+  return buildAuthResponse({
+    user,
+    tokens,
+    isNewUser: true,
+  });
 };
 
 // ── REFRESH ───────────────────────────────────────────────────────────────────
@@ -414,6 +429,7 @@ export const getMe = async (userId) => {
     email: user.email,
     verified: user.verified,
     authMethod: user.authMethod,
+    profileCompleted: isProfileComplete(user),
     profile: user.profile,
     createdAt: user.createdAt,
   };

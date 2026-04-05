@@ -117,6 +117,7 @@ export const findUserByResetToken = async (resetToken) => {
       resetToken,
       resetTokenExpiry: { gt: new Date() },
     },
+    include: { profile: true },
   });
 };
 
