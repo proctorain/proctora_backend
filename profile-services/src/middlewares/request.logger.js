@@ -1,22 +1,23 @@
+// src/middlewares/request.logger.js
 import logger from "../config/logger.js";
 
 const requestLogger = (req, res, next) => {
   const start = Date.now();
 
-  // When response finishes
   res.on("finish", () => {
     const duration = Date.now() - start;
+    const level =
+      res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info";
 
-    logger.info(
+    logger[level](
       {
+        type: "http",
         method: req.method,
         url: req.originalUrl,
         status: res.statusCode,
-        ip: req.ip,
-        userAgent: req.get("User-Agent"),
         duration: `${duration}ms`,
       },
-      "Request completed",
+      `${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
     );
   });
 

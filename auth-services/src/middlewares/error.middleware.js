@@ -6,10 +6,18 @@
 // recognizes it as an error handler vs a normal middleware.
 import HTTP_STATUS from "../utils/http.js";
 import { NODE_ENV } from "../config/env.js";
+import logger from "../config/logger.js";
 
 const errorMiddleware = (err, req, res, next) => {
-  console.error(`[ERROR] ${req.method} ${req.path} →`, err.message);
-  // Log it server-side so you can debug. In production use Winston/Pino.
+  logger.error(
+    {
+      err,
+      method: req.method,
+      path: req.path,
+    },
+    "Request failed",
+  );
+  // Log with structured metadata for better filtering and search.
 
   const statusCode = err.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   // Services attach: const err = new Error("msg"); err.statusCode = 409;
