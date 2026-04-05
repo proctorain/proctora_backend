@@ -1,57 +1,60 @@
-import { PORT, FRONTEND_URL } from "./config/env.js";
-import HTTP_STATUS from './utils/http.js';
+// server.js
 
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-
+import session from "express-session";
+import passport from "passport";
+import { configurePassport } from "./config/passport.js"
 import authRoutes from "./routes/auth.routes.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
-
-import './config/redis.js'
-// We import redis here to trigger its .connect() call at startup
-// Even though we don't use redisClient directly in this file
+import requestLogger from "./middlewares/request.logger.js";
+import logger from "./config/logger.js";
+import "./config/redis.js";
+import { FRONTEND_URL, SESSION_SECRET, NODE_ENV, PORT } from "./config/env.js";
 
 const app = express();
 
 app.use(helmet());
-
 app.use(
   cors({
-    origin:FRONTEND_URL || "*",
+    origin: FRONTEND_URL,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.use(express.json());
+app.use(requestLogger);
 
-app.use(express.json({ limit: "10kb" }));
-// limit: "10kb" prevents huge payload attacks
+// Session required by passport even though we use JWT
+// Passport needs it internally for the OAuth flow
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: NODE_ENV === "production" },
+  }),
+);
 
-// health check
+// Initialize passport and configure Google strategy
+configurePassport();
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.get("/health", (req, res) => {
-  res.status(HTTP_STATUS.OK).json({ status: "ok", timestamp: new Date().toISOString() });
-  // Used by Docker, load balancers, uptime monitors to check if server is alive
+  res.status(200).json({ status: "ok", service: "auth-service" });
 });
 
-
-// routes
 app.use("/api/auth", authRoutes);
 
-// root
-app.get("/", (req, res) => {
-  res.send("Server for Proctora is running");
-});
-
-app.use((req, res) => {
-  res.status(HTTP_STATUS.NOT_FOUND).json({
-    status: "error",
-    message: `Route ${req.method} ${req.path} not found`,
-  });
-});
-
-// global error handeller
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  logger.info({
+    message: "Auth service running",
+    port: PORT,
+  });
 });

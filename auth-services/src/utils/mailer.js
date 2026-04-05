@@ -5,23 +5,19 @@ const mailClient = axios.create({
   baseURL: MAIL_SERVICE_URL,
   headers: {
     "Content-Type": "application/json",
-    // Secret header so mail-service accepts our requests
+    // Auth between services (important for microservices)
     "x-mail-secret": MAIL_SERVICE_SECRET,
   },
+  timeout: 5000, // optional: prevent hanging requests
 });
 
-export const sendVerificationEmail = async (email, verificationLink) => {
-  await mailClient.post("/send", {
-    to: email,
-    type: "verification",
-    data: { verificationLink },
-  });
-};
+// Optional: response interceptor for logging/debugging
+mailClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("Mail service error:", error.response?.data || error.message);
+    return Promise.reject(error);
+  },
+);
 
-export const sendPasswordResetEmail = async (email, resetLink) => {
-  await mailClient.post("/send", {
-    to: email,
-    type: "password-reset",
-    data: { resetLink },
-  });
-};
+export default mailClient;

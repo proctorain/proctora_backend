@@ -1,57 +1,113 @@
 // src/repositories/user.repository.js
 
-// THE RULE OF REPOSITORIES:
-// This file is the ONLY place in the codebase that touches Prisma/database.
-// No business logic. No hashing. No tokens. Just database CRUD.
-//
-// WHY?
-// If you later switch databases (Prisma → raw SQL → MongoDB),
-// you only change THIS file. Everything else stays the same.
+import {prisma} from "../config/prisma.js";
 
-import { prisma } from '../config/prisma.js';
+// ── Find ──────────────────────────────────────────────────────────────────────
 
 export const findUserByEmail = async (email) => {
-  return prisma.userss.findUnique({ where: { email } });
-  // { email } is shorthand for { email: email }
-  // Returns the user object or null if not found
+  return prisma.userss.findUnique({
+    where: { email },
+    include: { profile: true },
+  });
 };
 
 export const findUserById = async (id) => {
-  return prisma.userss.findUnique({ where: { id } });
+  return prisma.userss.findUnique({
+    where: { id },
+    include: { profile: true },
+  });
 };
 
-export const createUser = async (email, hashedPassword) => {
+// ── Create ────────────────────────────────────────────────────────────────────
+
+export const createEmailUser = async (email, hashedPassword) => {
   return prisma.userss.create({
-    data: { email, password: hashedPassword },
-    // verified defaults to false — defined in schema
-  });
-};
-
-export const saveVerificationToken = async (email, token) => {
-  return prisma.userss.update({
-    where: { email },
-    data: { verificationToken: token },
-  });
-};
-
-export const verifyUserEmail = async (email) => {
-  return prisma.userss.update({
-    where: { email },
     data: {
-      verified: true,
-      verificationToken: null,
-      // Clear the token so the link can't be clicked a second time
+      email,
+      password: hashedPassword,
+      authMethod: "email",
+      verified: false,
+      // Profile created empty — filled during onboarding
+      profile: { create: {} },
+    },
+    include: { profile: true },
+  });
+};
+
+export const createGoogleUser = async ({ email, name, avatarUrl }) => {
+  return prisma.userss.create({
+    data: {
+      email,
+      authMethod: "google",
+      verified: true, // Google already verified the email
+      profile: {
+        create: {
+          name,
+          avatarUrl,
+        },
+      },
+    },
+    include: { profile: true },
+  });
+};
+
+// ── OTP ───────────────────────────────────────────────────────────────────────
+
+export const saveOtp = async (userId, hashedOtp) => {
+  return prisma.userss.update({
+    where: { id: userId },
+    data: {
+      otp: hashedOtp,
+      otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min
+      otpAttempts: 0, // reset attempts on new OTP
+      otpLastSentAt: new Date(),
     },
   });
 };
+
+export const incrementOtpAttempts = async (userId, attempts) => {
+  // If attempts hit 10, set cooldown of 20 minutes
+  const isCooldown = attempts >= 10;
+
+  return prisma.userss.update({
+    where: { id: userId },
+    data: {
+      otpAttempts: attempts,
+      otpCooldownUntil: isCooldown
+        ? new Date(Date.now() + 20 * 60 * 1000)
+        : null,
+      // Clear OTP on cooldown so it can't be used
+      ...(isCooldown && { otp: null, otpExpiry: null }),
+    },
+  });
+};
+
+export const clearOtp = async (userId) => {
+  return prisma.userss.update({
+    where: { id: userId },
+    data: {
+      otp: null,
+      otpExpiry: null,
+      otpAttempts: 0,
+      otpCooldownUntil: null,
+      otpLastSentAt: null,
+    },
+  });
+};
+
+export const markVerified = async (userId) => {
+  return prisma.userss.update({
+    where: { id: userId },
+    data: { verified: true },
+  });
+};
+
+// ── Password reset ────────────────────────────────────────────────────────────
 
 export const saveResetToken = async (email, resetToken, expiry) => {
   return prisma.userss.update({
     where: { email },
-    data: {
-      resetToken, // this is a SHA256 hash of the real token
-      resetTokenExpiry: expiry,
-    },
+    data: { resetToken, resetTokenExpiry: expiry },
   });
 };
 
@@ -60,8 +116,6 @@ export const findUserByResetToken = async (resetToken) => {
     where: {
       resetToken,
       resetTokenExpiry: { gt: new Date() },
-      // gt = "greater than" — expiry must be in the future
-      // If the token expired, this returns null
     },
   });
 };
@@ -71,7 +125,7 @@ export const updatePassword = async (userId, hashedPassword) => {
     where: { id: userId },
     data: {
       password: hashedPassword,
-      resetToken: null, // clear so token can't be used again
+      resetToken: null,
       resetTokenExpiry: null,
     },
   });

@@ -24,5 +24,13 @@ export const {
 
   // Email
   MAIL_SERVICE_SECRET,
-  MAIL_SERVICE_URL
+  MAIL_SERVICE_URL,
+
+  //Google auth
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK_URL,
+
+  //Passport session
+  SESSION_SECRET,
 } = process.env;
