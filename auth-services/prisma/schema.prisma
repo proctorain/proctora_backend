@@ -26,6 +26,10 @@ model Userss {
   otpCooldownUntil DateTime?   // 20 min cooldown after 10 wrong attempts
   otpLastSentAt    DateTime?   // enforces 35s resend timer
 
+  // Password reset token fields
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
