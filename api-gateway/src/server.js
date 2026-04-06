@@ -156,6 +156,6 @@ app.listen(PORT, () => {
   console.log(`Quiz service  → ${QUIZ_SERVICE_URL}`);
   console.log(`Email service  → ${EMAIL_SERVICE_URL}`);
   console.log(`Profile service  → ${PROFILE_SERVICE_URL}`);
-  console.log(`Profile service  → ${COMPILER_SERVICE_URL}`);
+  console.log(`Compiler service  → ${COMPILER_SERVICE_URL}`);
   console.log(`Health check  → http://localhost:${PORT}/health`);
 });
