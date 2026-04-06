@@ -35,7 +35,13 @@ export const getSupportedLanguages = async (req, res) => {
           // Default boilerplate so editor shows something useful on load
           template: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`,
         },
-        // Add more here when you add more languages
+        {
+          id: "python",
+          label: "Python",
+          version: "Python 3.11",
+          extension: ".py",
+          template: `name = input()\nprint(f"Hello, {name}!")`,
+        },
       ],
     },
   });

@@ -59,7 +59,7 @@ app.get("/health", (req, res) => {
     status: "ok",
     service: "compiler-service",
     timestamp: new Date().toISOString(),
-    supported: ["java"],
+    supported: ["java", "python"],
   });
 });
 
