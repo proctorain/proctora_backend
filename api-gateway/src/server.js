@@ -30,6 +30,7 @@ import {
   QUIZ_SERVICE_URL,
   PROFILE_SERVICE_URL,
   EMAIL_SERVICE_URL,
+  COMPILER_SERVICE_URL
 } from "./config/env.js";
 
 const app = express();
@@ -104,6 +105,28 @@ app.use(
   })
 );
 
+// Compiler-services
+app.use(
+  "/api/compiler",
+  createProxyMiddleware({
+    // Keep compiler-service namespace so /api/compiler/execute maps correctly upstream.
+    target: `${COMPILER_SERVICE_URL}/api/compiler`,
+    changeOrigin: true,
+    on: {
+      proxyReq: (proxyReq, req) => {
+        console.log(`[Compiler Proxy] ${req.method} ${req.path}`);
+      },
+      error: (err, req, res) => {
+        console.error("[Compiler Proxy Error]", err.message);
+        res.status(502).json({
+          status: "error",
+          message: "Compiler service unavailable",
+        });
+      },
+    },
+  }),
+);
+
 // ── Routes ────────────────────────────────────────────────────────────────
 // ORDER MATTERS in Express — routes are matched top to bottom.
 
@@ -133,5 +156,6 @@ app.listen(PORT, () => {
   console.log(`Quiz service  → ${QUIZ_SERVICE_URL}`);
   console.log(`Email service  → ${EMAIL_SERVICE_URL}`);
   console.log(`Profile service  → ${PROFILE_SERVICE_URL}`);
+  console.log(`Profile service  → ${COMPILER_SERVICE_URL}`);
   console.log(`Health check  → http://localhost:${PORT}/health`);
 });

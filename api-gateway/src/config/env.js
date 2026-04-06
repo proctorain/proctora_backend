@@ -10,4 +10,5 @@ export const {
   FRONTEND_URL,
   PROFILE_SERVICE_URL,
   EMAIL_SERVICE_URL,
+  COMPILER_SERVICE_URL,
 } = process.env;
